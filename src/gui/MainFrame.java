@@ -1,12 +1,13 @@
 package gui;
 
-import shapes.CanvasEllipse;
-import shapes.CanvasFigure;
-import shapes.CanvasSquare;
-import shapes.CanvasTriangle;
+import figures.Figure;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.geom.AffineTransform;
+import java.awt.geom.Rectangle2D;
+import java.util.Random;
 
 public class MainFrame extends JFrame {
     private AnimationPanel animationPanel;
@@ -16,7 +17,7 @@ public class MainFrame extends JFrame {
     private final JRadioButton squareRadioButton;
     private final JRadioButton ellipseRadioButton;
     private final JRadioButton triangleRadioButton;
-    private Class<? extends CanvasFigure> selectedFigure;
+    private final Random random = new Random();
 
     public MainFrame(int minWidth, int minHeight) {
         super("Animations");
@@ -30,7 +31,7 @@ public class MainFrame extends JFrame {
         buttonsPanel.setComponentOrientation(ComponentOrientation.LEFT_TO_RIGHT);
         addShapeButton = new JButton("Add next shape");
         toggleAnimationButton = new JButton("Toggle animation");
-        animationPanel = new AnimationPanel(minWidth, minHeight);
+        animationPanel = new AnimationPanel(minWidth, minHeight, 60);
         squareRadioButton = new JRadioButton("Square");
         ellipseRadioButton = new JRadioButton("Circle");
         triangleRadioButton = new JRadioButton("Triangle");
@@ -40,25 +41,25 @@ public class MainFrame extends JFrame {
 
     private void initializeComponents(){
         squareRadioButton.addActionListener((e) -> {
-            selectedFigure = CanvasSquare.class;
-            ellipseRadioButton.setSelected(false);
-            triangleRadioButton.setSelected(false);
+
         });
         ellipseRadioButton.addActionListener((e) -> {
-            selectedFigure = CanvasEllipse.class;
-            squareRadioButton.setSelected(false);
-            triangleRadioButton.setSelected(false);
+
         });
         triangleRadioButton.addActionListener((e) -> {
-            selectedFigure = CanvasTriangle.class;
-            ellipseRadioButton.setSelected(false);
-            squareRadioButton.setSelected(false);
+
         });
 
         //Make square default option
         squareRadioButton.doClick();
 
-        addShapeButton.addActionListener((event) -> animationPanel.addFigure(selectedFigure));
+        addShapeButton.addActionListener((event) -> {
+                    var newFigure = new Figure(new Rectangle2D.Double(100,100,50,50));
+                    newFigure.setVelocity(new Vector2D(20,20));
+                    newFigure.setRotationSpeed(2);
+                    animationPanel.addFigure(newFigure);
+                });
+
         toggleAnimationButton.addActionListener((event) -> animationPanel.toggleAnimation());
 
         buttonsPanel.add(addShapeButton);

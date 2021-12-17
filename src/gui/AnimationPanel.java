@@ -5,16 +5,25 @@
 
 package gui;
 
-import shapes.CanvasFigure;
+
+import figures.Figure;
+import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.AffineTransform;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 
-import javax.swing.JPanel;
-import javax.swing.Timer;
+import javax.swing.*;
 
 public class AnimationPanel extends JPanel implements ActionListener {
 
@@ -22,10 +31,11 @@ public class AnimationPanel extends JPanel implements ActionListener {
 	private Graphics2D screenGraphics;
 	private Graphics2D bufferGraphics;
 	private final Timer timer;
-	private static int numer = 0;
-	private final int delay = 60;
+	private final List<Figure> figuresToDraw;
+	private final ThreadLocalRandom random = ThreadLocalRandom.current();
+	private final double fps;
 
-	public AnimationPanel(int initialWidth, int initialHeight) {
+	public AnimationPanel(int initialWidth, int initialHeight, double fps) {
 		super();
 		this.setBackground(Color.WHITE);
 		this.setOpaque(true);
@@ -38,29 +48,20 @@ public class AnimationPanel extends JPanel implements ActionListener {
 			}
 		});
 
-		timer = new Timer(delay, this);
+		this.fps = fps;
+		figuresToDraw = new ArrayList<>();
+		timer = new Timer( (int) (1/fps * 1000), this);
 	}
 
-	public void addFigure(Class<? extends CanvasFigure> figureClass) {
-
-		CanvasFigure figureToDraw = null;
-		try {
-			figureToDraw = figureClass.getDeclaredConstructor(Graphics2D.class, int.class, int.class, int.class)
-					.newInstance(bufferGraphics, delay, getWidth(), getHeight());
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-		timer.addActionListener(figureToDraw);
-		new Thread(figureToDraw).start();
+	public void addFigure(Figure figureToDraw) {
+		SwingUtilities.invokeLater(() -> figuresToDraw.add(figureToDraw));
 	}
 
 	public void toggleAnimation() {
-		if (timer.isRunning()) {
+		if (timer.isRunning())
 			timer.stop();
-		} else {
+		else
 			timer.start();
-		}
 	}
 
 	@Override
@@ -71,6 +72,38 @@ public class AnimationPanel extends JPanel implements ActionListener {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		ExecutorService executorService = Executors.newCachedThreadPool();
+		double deltaTime = 1 / fps;
+		for (var figure : figuresToDraw){
+			executorService.submit(() -> {
+				var oldTransform = bufferGraphics.getTransform();
+				var figureBounds = figure.getShape().getBounds();
+				var center = new Vector2D(
+						figureBounds.x + figureBounds.width * 0.5f,
+						figureBounds.y + figureBounds.height * 0.5f);
+
+				bufferGraphics.setTransform(figure.getLastTransform());
+
+				bufferGraphics.rotate(figure.getRotationSpeed() * deltaTime, center.getX(), center.getY());
+				bufferGraphics.translate(
+						figure.getVelocity().getX() * deltaTime,
+						figure.getVelocity().getY() * deltaTime);
+
+				figure.setLastTransform(bufferGraphics.getTransform());
+
+				bufferGraphics.setColor(Color.DARK_GRAY);
+				bufferGraphics.fill(figure.getShape());
+				bufferGraphics.draw(figure.getShape());
+				bufferGraphics.setTransform(oldTransform);
+			});
+		}
+		executorService.shutdown();
+		try {
+			executorService.awaitTermination(70, TimeUnit.MILLISECONDS);
+		} catch (InterruptedException ex) {
+			ex.printStackTrace();
+		}
+
 		screenGraphics.drawImage(backBuffer, 0, 0, null);
 		bufferGraphics.clearRect(0, 0,
 				backBuffer.getWidth(null),
@@ -85,6 +118,17 @@ public class AnimationPanel extends JPanel implements ActionListener {
 	public void createGraphicsContext(int width, int height){
 		backBuffer = createImage(width, height);
 		bufferGraphics = (Graphics2D) backBuffer.getGraphics();
+		screenGraphics = (Graphics2D) getGraphics();
+		applyRenderingHints();
+	}
+
+	public void recreateGraphicsContext(int width, int height){
+		var oldBackBuffer = createImage(backBuffer.getWidth(null),
+				backBuffer.getHeight(null));
+
+		backBuffer = createImage(width, height);
+		bufferGraphics = (Graphics2D) backBuffer.getGraphics();
+		bufferGraphics.drawImage(oldBackBuffer, 0, 0, null);
 		screenGraphics = (Graphics2D) getGraphics();
 		applyRenderingHints();
 	}
