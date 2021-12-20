@@ -1,0 +1,11 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="gui_swing_anim:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/gui_swing_anim_jar</output-path>
+    <root id="archive" name="gui_swing_anim.jar">
+      <element id="module-output" name="gui_swing_anim" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../Java/commons-math3-3.6.1/commons-math3-3.6.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../Java/commons-math3-3.6.1/commons-math3-3.6.1-tools.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../../../Java/commons-lang3-3.12.0/commons-lang3-3.12.0.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
