@@ -2,6 +2,7 @@ package gui;
 
 import figures.Figure;
 import figures.Triangle2DDouble;
+import figures.Triangle2DFloat;
 import org.apache.commons.math3.geometry.euclidean.twod.Vector2D;
 
 import javax.swing.*;
@@ -13,7 +14,7 @@ import java.util.Hashtable;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class MainFrame extends JFrame {
-    private AnimationPanel animationPanel;
+    private final AnimationPanel animationPanel;
     private final JPanel buttonsPanel;
     private final JPanel controlPanel;
     private final JLabel fpsCounterLabel;
@@ -51,12 +52,12 @@ public class MainFrame extends JFrame {
         toggleAnimationButton = new JButton("Toggle animation");
         animationPanel = new AnimationPanel(minWidth, minHeight, 61);
         squareRadioButton = new JRadioButton("Square");
-        ellipseRadioButton = new JRadioButton("Circle");
+        ellipseRadioButton = new JRadioButton("Circle (reduces FPS!)");
         triangleRadioButton = new JRadioButton("Triangle");
         fpsCounterLabel = new JLabel("0 FPS");
         velocityXSlider = new JSlider(0,115,0);
         velocityYSlider = new JSlider(0,115,0);
-        rotationVelocitySlider = new JSlider(0,180,0);
+        rotationVelocitySlider = new JSlider(0,360,0);
         pulseVelocitySlider = new JSlider();
         pulseAmplitudeSlider = new JSlider();
         targetFPSSlider = new JSlider(1, 200,61);
@@ -102,7 +103,6 @@ public class MainFrame extends JFrame {
 
         addShapeButton.addActionListener(event -> {
             Shape newShape = null;
-
             try {
                 newShape = selectedShape.getDeclaredConstructor(
                         double.class,
@@ -147,11 +147,11 @@ public class MainFrame extends JFrame {
 
         targetFPSSlider.setSnapToTicks(true);
         targetFPSSlider.setMajorTickSpacing(1);
-        targetFPSSlider.setLabelTable(targetFPSSlider.createStandardLabels(21));
+        targetFPSSlider.setLabelTable(targetFPSSlider.createStandardLabels(20));
         targetFPSSlider.setPaintTicks(true);
         targetFPSSlider.setPaintLabels(true);
         targetFPSSlider.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.BLUE, 2), "Targeted FPS"));
+                BorderFactory.createLineBorder(Color.GREEN, 2), "Targeted FPS"));
         targetFPSSlider.addChangeListener( event -> animationPanel.setTargetedFPS(targetFPSSlider.getValue()));
 
 
@@ -179,14 +179,14 @@ public class MainFrame extends JFrame {
 
 
         pulseVelocitySlider.setPreferredSize(new Dimension(300,60));
-        pulseVelocitySlider.setLabelTable(getFloatSliderLabels(300, 2000, 300));
-        pulseVelocitySlider.setMinimum(300);
-        pulseVelocitySlider.setMaximum(2000);
+        pulseVelocitySlider.setLabelTable(getFloatSliderLabels(800, 1500, 100));
+        pulseVelocitySlider.setMinimum(800);
+        pulseVelocitySlider.setMaximum(1500);
         pulseVelocitySlider.setMajorTickSpacing(100);
-        pulseVelocitySlider.setSnapToTicks(true);
+        //pulseVelocitySlider.setSnapToTicks(true);
         pulseVelocitySlider.setPaintLabels(true);
         pulseVelocitySlider.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.RED, 2), "Pulse speed [angles]"));
+                BorderFactory.createLineBorder(Color.RED, 2), "Pulse speed"));
 
         pulseAmplitudeSlider.setLabelTable(getFloatSliderLabels(1000, 3000, 300));
         pulseAmplitudeSlider.setMinimum(1000);
@@ -195,7 +195,7 @@ public class MainFrame extends JFrame {
         pulseAmplitudeSlider.setSnapToTicks(true);
         pulseAmplitudeSlider.setPaintLabels(true);
         pulseAmplitudeSlider.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(Color.RED, 2), "Pulse amplitude [angles]"));
+                BorderFactory.createLineBorder(Color.RED, 2), "Pulse amplitude"));
 
 
 
